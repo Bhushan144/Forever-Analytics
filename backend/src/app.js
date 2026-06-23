@@ -17,13 +17,17 @@ app.use(express.json({limit:"1mb"}))
 
 //middlewares 
 const corsOrigins = process.env.CORS_ORIGIN || 'http://localhost:5173,http://localhost:5174';
-const allowedOrigins = corsOrigins.split(',');
+const allowedOrigins = corsOrigins.split(',').map(o => o.trim().replace(/\/+$/, ''));
+console.log('CORS allowed origins:', allowedOrigins);
+
 const corsOptions = {
     origin: (origin, callback) => {
-        if (allowedOrigins.includes(origin) || !origin) {
+        // Allow requests with no origin (mobile apps, curl, server-to-server)
+        if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
-            callback(new Error('Not allowed by CORS'));
+            console.warn('CORS blocked origin:', origin);
+            callback(null, false); // Reject without crashing — sends proper CORS denial
         }
     },
     credentials: true, // This is essential for sending cookies
