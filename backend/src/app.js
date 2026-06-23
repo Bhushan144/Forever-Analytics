@@ -12,8 +12,12 @@ import { fileURLToPath } from 'url';
 
 let app = express()
 
+// Middleware that converts JSON string (if we got from req.body of each req) → JS object
+app.use(express.json({limit:"1mb"}))
+
 //middlewares 
-const allowedOrigins = ['http://localhost:5173', 'http://localhost:5174'];
+const corsOrigins = process.env.CORS_ORIGIN || 'http://localhost:5173,http://localhost:5174';
+const allowedOrigins = corsOrigins.split(',');
 const corsOptions = {
     origin: (origin, callback) => {
         if (allowedOrigins.includes(origin) || !origin) {
@@ -25,10 +29,10 @@ const corsOptions = {
     credentials: true, // This is essential for sending cookies
 };
 
+
 app.use(cors(corsOptions));
 
-// Middleware that converts JSON string (if we got from req.body of each req) → JS object
-app.use(express.json({limit:"16kb"}))
+
 
 app.use(express.static('public'))
 

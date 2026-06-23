@@ -20,7 +20,6 @@ const analyticsSessionSchema = new mongoose.Schema({
 
 // Indexes for fast lookups during ingestion
 analyticsSessionSchema.index({ visitor_id: 1 });
-analyticsSessionSchema.index({ session_id: 1 });
 // Index for sorting sessions by newest in the dashboard
 analyticsSessionSchema.index({ start_time: -1 });
 

@@ -24,10 +24,12 @@ const Sidebar = () => {
                 </NavLink>
 
                 {/*Analytics Link */}
-                <NavLink className='flex items-center gap-3 border border-gray-300 border-r-0 px-3 py-2 rounded-l' to="/analytics">
-                    {/* Reusing an existing icon for simplicity, or you can use a generic SVG */}
-                    <img className='w-5 h-5 opacity-70' src={assets.order_icon} alt="" />
-                    <p className='hidden md:block font-bold text-blue-600'>Analytics</p>
+                <NavLink to="/analytics" className={({ isActive }) => `flex items-center gap-4 mt-4 border border-gray-300 p-2 sm:px-8 px-2 border-r-0 ${isActive ? "active" : ""}`}>
+                    {/* Inline SVG bar chart icon */}
+                    <svg className="w-5 h-5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 13h2v8H3v-8zm6-4h2v12H9V9zm6-6h2v18h-2V3zm6 8h2v10h-2V11z" />
+                    </svg>
+                    <p className='hidden md:block'>Analytics</p>
                 </NavLink>
             </div>
         </>

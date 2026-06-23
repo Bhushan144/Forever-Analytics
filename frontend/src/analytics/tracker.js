@@ -1,5 +1,5 @@
 class CausalFunnelTracker {
-    constructor(endpoint = 'http://localhost:3000/api/tracking/events') {
+    constructor(endpoint = (import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000') + '/api/tracking/events') {
         this.endpoint = endpoint;
         this.queue = [];
         this.isSending = false;
@@ -129,7 +129,8 @@ class CausalFunnelTracker {
         const payload = JSON.stringify({ events: batch });
 
         if (isUnload && navigator.sendBeacon) {
-            navigator.sendBeacon(this.endpoint, payload);
+            const blob = new Blob([payload], { type: 'application/json' });
+            navigator.sendBeacon(this.endpoint, blob);
         } else {
             this.isSending = true;
             try {

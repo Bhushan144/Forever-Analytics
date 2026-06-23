@@ -58,7 +58,7 @@ function App() {
           <div className="bg-gray-300 h-px w-full "></div>
           <div className="flex ">
             <Sidebar />
-            <div className="">
+            <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
               <Routes>
                 <Route path="/add" element={<Add />}></Route>
                 <Route path="/list" element={<List currency={currency}/>}></Route>

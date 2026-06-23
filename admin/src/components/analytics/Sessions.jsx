@@ -3,17 +3,35 @@ import axios from 'axios';
 import { backendURL } from '../../App';
 import { toast } from 'react-toastify';
 
+// Event type color mapping for timeline dots and badges
+const eventColors = {
+    page_view:    { bg: '#eef5fa', text: '#7BAFCF', dot: '#7BAFCF', label: 'Page View' },
+    click:        { bg: '#fdf2ec', text: '#D4956B', dot: '#D4956B', label: 'Click' },
+    product_view: { bg: '#f3eef8', text: '#A78BBA', dot: '#A78BBA', label: 'Product View' },
+    add_to_cart:  { bg: '#edf7f1', text: '#6BAD8E', dot: '#6BAD8E', label: 'Add to Cart' },
+    search:       { bg: '#ffebf5', text: '#C586A5', dot: '#C586A5', label: 'Search' },
+};
+
+// Format duration nicely
+const formatDuration = (seconds) => {
+    if (!seconds || seconds <= 0) return '0s';
+    if (seconds < 60) return `${seconds}s`;
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return secs > 0 ? `${mins}m ${secs}s` : `${mins}m`;
+};
+
 const Sessions = () => {
     const [sessions, setSessions] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [isRefreshing, setIsRefreshing] = useState(false); // State for refresh button
+    const [isRefreshing, setIsRefreshing] = useState(false);
     
     // State for lazy-loaded journeys
     const [expandedSession, setExpandedSession] = useState(null);
     const [journeys, setJourneys] = useState({}); 
     const [journeyLoading, setJourneyLoading] = useState(false);
 
-    // Fetch Session Summaries (Extracted so the button can use it)
+    // Fetch Session Summaries
     const fetchSessions = async (showRefreshSpinner = false) => {
         if (showRefreshSpinner) setIsRefreshing(true);
         try {
@@ -33,12 +51,11 @@ const Sessions = () => {
         }
     };
 
-    // Run exactly once on mount
     useEffect(() => {
         fetchSessions();
-    }, []); // Removed token dependency
+    }, []);
 
-    //  Fetch Detailed Journey (Lazy Load)
+    // Fetch Detailed Journey (Lazy Load)
     const toggleJourney = async (sessionId) => {
         if (expandedSession === sessionId) {
             setExpandedSession(null); 
@@ -51,7 +68,7 @@ const Sessions = () => {
             setJourneyLoading(true);
             try {
                 const response = await axios.get(`${backendURL}/api/analytics/sessions/${sessionId}`, {
-                    withCredentials: true // Ensures secure cookie is sent
+                    withCredentials: true
                 });
                 if (response.data.success) {
                     setJourneys(prev => ({ ...prev, [sessionId]: response.data.journey }));
@@ -66,70 +83,131 @@ const Sessions = () => {
         }
     };
 
-    // Helper to parse event metadata beautifully
+    // Helper to render event details with correct formatting
     const renderEventDetails = (event) => {
         const { event_type, metadata, page_url } = event;
+        const colors = eventColors[event_type] || eventColors.click;
+        
         switch (event_type) {
             case 'page_view': 
-                return <span className="text-gray-600">Viewed Page: <b className="text-black">{page_url}</b></span>;
+                return (
+                    <span className="text-gray-600">
+                        Viewed Page: <b className="text-gray-800">{page_url}</b>
+                    </span>
+                );
             case 'click': 
-                return <span className="text-gray-500">Clicked <b className="text-gray-700">{metadata.element_tag || 'element'}</b> at ({metadata.x_percent}%, {metadata.y_percent}%)</span>;
+                return (
+                    <span className="text-gray-500">
+                        Clicked <b className="text-gray-700">{metadata?.element_tag || 'element'}</b>
+                        {metadata?.element_text && <span className="text-gray-400"> "{metadata.element_text}"</span>}
+                        {' '}at ({(metadata?.x_percent * 100).toFixed(1)}%, {(metadata?.y_percent * 100).toFixed(1)}%)
+                    </span>
+                );
             case 'product_view': 
-                return <span className="text-blue-600">Viewed Product: <b className="text-blue-800">{metadata.product_name}</b></span>;
+                return (
+                    <span style={{ color: colors.text }}>
+                        Viewed Product: <b>{metadata?.product_name || metadata?.product_id}</b>
+                    </span>
+                );
             case 'add_to_cart': 
-                return <span className="text-green-600">Added to Cart: <b className="text-green-800">{metadata.product_id}</b> (${metadata.price})</span>;
+                return (
+                    <span style={{ color: colors.text }}>
+                        Added to Cart: <b>{metadata?.product_id}</b> {metadata?.price && `($${metadata.price})`}
+                    </span>
+                );
             case 'search': 
-                return <span className="text-purple-600">Searched for: <b className="text-purple-800">"{metadata.search_query}"</b></span>;
+                return (
+                    <span style={{ color: colors.text }}>
+                        Searched for: <b>"{metadata?.search_query}"</b>
+                    </span>
+                );
             default: 
                 return <span className="text-gray-500">Unknown Action</span>;
         }
     };
 
-    if (loading) return <p className="text-gray-500 animate-pulse">Loading sessions table...</p>;
+    if (loading) {
+        return (
+            <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+                <div className="p-5 border-b border-gray-100">
+                    <div className="h-5 bg-gray-100 rounded w-40 animate-pulse"></div>
+                </div>
+                {[...Array(5)].map((_, i) => (
+                    <div key={i} className="flex gap-4 p-4 border-b border-gray-50 animate-pulse">
+                        <div className="h-4 bg-gray-100 rounded w-32"></div>
+                        <div className="h-4 bg-gray-100 rounded w-24"></div>
+                        <div className="h-4 bg-gray-100 rounded w-36"></div>
+                        <div className="h-4 bg-gray-100 rounded w-16"></div>
+                    </div>
+                ))}
+            </div>
+        );
+    }
 
     return (
         <div>
             {/* Header with Refresh Button */}
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold text-gray-700">Recent Sessions</h2>
+            <div className="flex justify-between items-center mb-5">
+                <h2 className="text-lg font-semibold text-gray-800">Recent Sessions</h2>
                 <button 
                     onClick={() => fetchSessions(true)}
                     disabled={isRefreshing}
-                    className="flex items-center gap-2 text-sm px-3 py-1.5 border border-gray-300 rounded hover:bg-gray-50 transition-colors disabled:opacity-50"
+                    className="flex items-center gap-2 text-sm px-4 py-2 rounded-lg transition-all duration-200 cursor-pointer disabled:opacity-50"
+                    style={{ 
+                        border: '1px solid #C586A5', 
+                        color: '#C586A5',
+                        background: isRefreshing ? '#ffebf5' : 'white'
+                    }}
                 >
-                    {isRefreshing ? 'Refreshing...' : '↻ Refresh Data'}
+                    <svg className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    {isRefreshing ? 'Refreshing...' : 'Refresh'}
                 </button>
             </div>
 
-            <div className="bg-white rounded border shadow-sm overflow-hidden">
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm whitespace-nowrap">
-                        <thead className="bg-gray-50 border-b text-gray-600">
-                            <tr>
-                                <th className="p-4 font-semibold">Session ID</th>
-                                <th className="p-4 font-semibold">Visitor ID</th>
-                                <th className="p-4 font-semibold">Start Time</th>
-                                <th className="p-4 font-semibold">Duration</th>
-                                <th className="p-4 font-semibold">Events</th>
-                                <th className="p-4 font-semibold text-right">Action</th>
+                    <table className="w-full text-left text-sm">
+                        <thead>
+                            <tr style={{ backgroundColor: '#ffebf5' }}>
+                                <th className="p-4 font-semibold text-gray-700 whitespace-nowrap">Session ID</th>
+                                <th className="p-4 font-semibold text-gray-700 whitespace-nowrap">Visitor ID</th>
+                                <th className="p-4 font-semibold text-gray-700 whitespace-nowrap">Start Time</th>
+                                <th className="p-4 font-semibold text-gray-700 whitespace-nowrap">Duration</th>
+                                <th className="p-4 font-semibold text-gray-700 whitespace-nowrap">Events</th>
+                                <th className="p-4 font-semibold text-gray-700 text-right whitespace-nowrap">Action</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {sessions.map((session) => (
+                            {sessions.map((session, idx) => (
                                 <React.Fragment key={session.session_id}>
                                     {/* Summary Row */}
-                                    <tr className="border-b hover:bg-gray-50 transition-colors">
-                                        <td className="p-4 text-gray-800 font-medium">{session.session_id.substring(0, 15)}...</td>
-                                        <td className="p-4 text-gray-500">{session.visitor_id.substring(0, 15)}...</td>
-                                        <td className="p-4 text-gray-600">{new Date(session.start_time).toLocaleString()}</td>
-                                        <td className="p-4 text-gray-600">{session.session_duration_seconds}s</td>
-                                        <td className="p-4 text-gray-600">{session.event_count} actions</td>
+                                    <tr className={`border-b border-gray-50 transition-colors hover:bg-gray-50 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
+                                        <td className="p-4 font-mono text-xs text-gray-600">{session.session_id.substring(0, 18)}...</td>
+                                        <td className="p-4 font-mono text-xs text-gray-500">{session.visitor_id.substring(0, 18)}...</td>
+                                        <td className="p-4 text-gray-600 whitespace-nowrap">{new Date(session.start_time).toLocaleString()}</td>
+                                        <td className="p-4">
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium" style={{ backgroundColor: '#f3eef8', color: '#A78BBA' }}>
+                                                {formatDuration(session.session_duration_seconds)}
+                                            </span>
+                                        </td>
+                                        <td className="p-4">
+                                            <div className="flex items-center gap-1.5 flex-wrap">
+                                                <span className="text-gray-700 font-semibold">{session.event_count}</span>
+                                                <span className="text-gray-400 text-xs">actions</span>
+                                            </div>
+                                        </td>
                                         <td className="p-4 text-right">
                                             <button
                                                 onClick={() => toggleJourney(session.session_id)}
-                                                className="px-3 py-1 bg-gray-100 text-gray-700 border rounded hover:bg-gray-200 transition-colors"
+                                                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
+                                                style={expandedSession === session.session_id 
+                                                    ? { backgroundColor: '#C586A5', color: 'white' }
+                                                    : { backgroundColor: '#ffebf5', color: '#C586A5', border: '1px solid #C586A5' }
+                                                }
                                             >
-                                                {expandedSession === session.session_id ? 'Close' : 'View Journey'}
+                                                {expandedSession === session.session_id ? '✕ Close' : '→ View Journey'}
                                             </button>
                                         </td>
                                     </tr>
@@ -137,31 +215,58 @@ const Sessions = () => {
                                     {/* Expandable Journey Timeline Row */}
                                     {expandedSession === session.session_id && (
                                         <tr>
-                                            <td colSpan="6" className="p-0 border-b">
-                                                <div className="bg-slate-50 p-6 border-l-4 border-blue-500 shadow-inner">
-                                                    <h3 className="font-bold text-gray-800 mb-6 uppercase text-xs tracking-wider">User Journey Timeline</h3>
+                                            <td colSpan="6" className="p-0">
+                                                <div className="p-6" style={{ backgroundColor: '#fdfafc', borderLeft: '4px solid #C586A5' }}>
+                                                    <h3 className="font-bold text-gray-800 mb-6 uppercase text-xs tracking-wider flex items-center gap-2">
+                                                        <svg className="w-4 h-4" style={{ color: '#C586A5' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                                                        </svg>
+                                                        User Journey Timeline
+                                                    </h3>
                                                     
                                                     {journeyLoading && !journeys[session.session_id] ? (
-                                                        <p className="text-gray-500 animate-pulse">Fetching events...</p>
+                                                        <div className="flex items-center gap-2 text-gray-500">
+                                                            <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                                            </svg>
+                                                            Fetching events...
+                                                        </div>
                                                     ) : (
-                                                        <div className="relative border-l-2 border-gray-300 ml-3 space-y-6">
-                                                            {journeys[session.session_id]?.map((event) => (
-                                                                <div key={event.event_id} className="relative pl-6">
-                                                                    {/* Timeline Dot */}
-                                                                    <span className="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-blue-500 ring-4 ring-slate-50"></span>
-                                                                    
-                                                                    <div className="flex flex-col">
-                                                                        <span className="text-xs text-gray-400 font-medium mb-1">
-                                                                            {new Date(event.timestamp).toLocaleTimeString()}
-                                                                        </span>
-                                                                        <span className="text-sm">
-                                                                            {renderEventDetails(event)}
-                                                                        </span>
+                                                        <div className="relative border-l-2 border-gray-200 ml-3 space-y-5">
+                                                            {journeys[session.session_id]?.map((event) => {
+                                                                const colors = eventColors[event.event_type] || eventColors.click;
+                                                                return (
+                                                                    <div key={event.event_id} className="relative pl-7">
+                                                                        {/* Timeline Dot — color-coded by event type */}
+                                                                        <span 
+                                                                            className="absolute -left-[7px] top-1.5 w-3 h-3 rounded-full ring-3"
+                                                                            style={{ 
+                                                                                backgroundColor: colors.dot,
+                                                                                ringColor: '#fdfafc'
+                                                                            }}
+                                                                        ></span>
+                                                                        
+                                                                        <div className="flex flex-col gap-0.5">
+                                                                            <div className="flex items-center gap-2">
+                                                                                <span className="text-xs text-gray-400 font-mono">
+                                                                                    {new Date(event.timestamp).toLocaleTimeString()}
+                                                                                </span>
+                                                                                <span 
+                                                                                    className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded"
+                                                                                    style={{ backgroundColor: colors.bg, color: colors.text }}
+                                                                                >
+                                                                                    {colors.label}
+                                                                                </span>
+                                                                            </div>
+                                                                            <span className="text-sm">
+                                                                                {renderEventDetails(event)}
+                                                                            </span>
+                                                                        </div>
                                                                     </div>
-                                                                </div>
-                                                            ))}
+                                                                );
+                                                            })}
                                                             {journeys[session.session_id]?.length === 0 && (
-                                                                <p className="pl-6 text-gray-500">No events recorded in this session.</p>
+                                                                <p className="pl-7 text-gray-400 text-sm italic">No events recorded in this session.</p>
                                                             )}
                                                         </div>
                                                     )}
@@ -173,7 +278,17 @@ const Sessions = () => {
                             ))}
                         </tbody>
                     </table>
-                    {sessions.length === 0 && <p className="p-6 text-center text-gray-500">No sessions recorded yet.</p>}
+
+                    {/* Empty State */}
+                    {sessions.length === 0 && (
+                        <div className="p-12 text-center">
+                            <svg className="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p className="text-gray-500 font-medium">No sessions recorded yet</p>
+                            <p className="text-gray-400 text-sm mt-1">Sessions will appear here as visitors browse your store.</p>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

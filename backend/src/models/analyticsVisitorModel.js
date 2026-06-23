@@ -8,7 +8,6 @@ const analyticsVisitorSchema = new mongoose.Schema({
     fingerprint_hash: { type: String }        // Stored passively, no complex recovery
 });
 
-analyticsVisitorSchema.index({ visitor_id: 1 });
 analyticsVisitorSchema.index({ last_seen: -1 });
 
 const AnalyticsVisitor = mongoose.models.AnalyticsVisitor || mongoose.model("AnalyticsVisitor", analyticsVisitorSchema);

@@ -7,6 +7,14 @@ const generateToken = (_id) => {
     return jwt.sign({ _id }, process.env.JWT_SECRET_KEY, { expiresIn: process.env.JWT_TOKEN_EXPIRY })
 }
 
+// Shared cookie options for cross-origin deployment (Vercel ↔ Render)
+const getCookieOptions = () => ({
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+});
+
 const register = async (req, res) => {
     try {
         //get the details
@@ -46,11 +54,7 @@ const register = async (req, res) => {
         }
         const token = await jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: process.env.JWT_TOKEN_EXPIRY })
 
-        const options = {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            maxAge: 7 * 24 * 60 * 60 * 1000 //7 days
-        }
+        const options = getCookieOptions();
 
           const userInfo = {
             _id: user._id,
@@ -97,11 +101,7 @@ const login = async (req, res) => {
         }
         const token = jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: process.env.JWT_TOKEN_EXPIRY })
 
-        const options = {
-            httpOnly: true,
-            secure: process.env.NODE_ENV == 'production',
-            maxAge: 7 * 24 * 60 * 60 * 1000 //7 days
-        }
+        const options = getCookieOptions();
         res.cookie("token", token, options);
 
         const userInfo = {
@@ -133,10 +133,7 @@ const verifyUser = async (req, res) => {
 
 const logout = async (req,res)=>{
     try {
-        const options = {
-            httpOnly:true,
-            secure:process.env.NODE_ENV === 'production'
-        }
+        const options = getCookieOptions();
         res.clearCookie('token',options).status(200).json({success:true,message:"logout successfully"})
 
     } catch (error) {
@@ -165,11 +162,7 @@ const adminLogin = async (req, res) => {
         }
         const token = await jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: process.env.JWT_TOKEN_EXPIRY })
 
-        const options = {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            maxAge: 7 * 24 * 60 * 60 * 1000 //7 days
-        }
+        const options = getCookieOptions();
 
         return res.cookie("token", token, options).status(200).json({ success: true, message: "admin login successfull." })
 
@@ -180,10 +173,7 @@ const adminLogin = async (req, res) => {
 
 const logoutAdmin = async (req, res) => {
     try {
-        const options = {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-        }
+        const options = getCookieOptions();
         res.clearCookie('token', options).status(200).json({ success: true, message: "logout successfully." });
     } catch (error) {
         res.status(500).json({ success: false, message: 'server error' })

@@ -22,8 +22,8 @@ export const getOverviewMetrics = async (req, res) => {
         ]);
 
         const stats = sessionStats[0] || { totalSessions: 0, totalPageViews: 0, totalClicks: 0, avgDurationMs: 0 };
-        // Convert MS to seconds for the frontend
-        stats.avgDurationSeconds = Math.round(stats.avgDurationMs / 1000); 
+        // Convert MS to seconds for the frontend (safely handle null from empty aggregation)
+        stats.avgDurationSeconds = Math.round((stats.avgDurationMs || 0) / 1000); 
 
         res.json({ success: true, totalVisitors, ...stats });
     } catch (error) {

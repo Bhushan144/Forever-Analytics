@@ -4,6 +4,11 @@ import AnalyticsVisitor from '../models/analyticsVisitorModel.js';
 import crypto from 'crypto';
 
 export const ingestEvents = async (req, res) => {
+
+    if (!req.body || !req.body.events) {
+        return res.status(400).json({ success: false, message: "Invalid or missing JSON payload" });
+    }
+
     try {
         const { events } = req.body;
 
@@ -30,12 +35,12 @@ export const ingestEvents = async (req, res) => {
         // Session Stitching Logic
         // Find the most recent session for this visitor
         let activeSession = await AnalyticsSession.findOne({ visitor_id: visitorId })
-                                                .sort({ last_activity: -1 });
+            .sort({ last_activity: -1 });
 
         const SESSION_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
 
         // If no session exists OR the last activity was over 30 mins ago, start a new one
-        if (!activeSession || (now - activeSession.last_activity.getTime()) > SESSION_TIMEOUT_MS) {
+        if (!activeSession || (now.getTime() - activeSession.last_activity.getTime()) > SESSION_TIMEOUT_MS) {
             activeSession = new AnalyticsSession({
                 session_id: 'sess_' + crypto.randomUUID().replace(/-/g, ''),
                 visitor_id: visitorId,
