@@ -4,6 +4,8 @@ import cookieParser from 'cookie-parser';
 import userRouter from './routes/userRouter.js';
 import productRouter from './routes/productRouter.js';
 
+import trackingRouter from './routes/trackingRouter.js';
+
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -36,6 +38,8 @@ app.use("/api/user",userRouter);
 
 //product Routes
 app.use("/api/product",productRouter);
+
+app.use('/api/tracking', trackingRouter);
 
 // This part is new:
 const __filename = fileURLToPath(import.meta.url);
