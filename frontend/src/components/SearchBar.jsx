@@ -3,6 +3,8 @@ import { ShopContext } from '../context/ShopContext'
 import { assets } from '../assets/assets';
 import { useLocation } from 'react-router-dom';
 
+import { tracker } from '../analytics/tracker';
+
 const SearchBar = () => {
 
     let { search, setSearch, showSearch, setShowSearch } = useContext(ShopContext);
@@ -17,6 +19,22 @@ const SearchBar = () => {
             setVisible(false);
         }
     },[location])
+
+    // DEBOUNCED TRACKING
+    useEffect(() => {
+    // Only track if the search box is open and they typed at least 2 characters
+    if (showSearch && search && search.length >= 2) {
+      
+      const delayBounceFn = setTimeout(() => {
+        tracker.track('search', {
+          search_query: search.toLowerCase()
+        });
+      }, 1000); // Waits 1 second after they stop typing to fire the event
+
+      return () => clearTimeout(delayBounceFn); // Cleanup if they keep typing
+    }
+  }, [search, showSearch]);
+
 
     //using ternary operator while returning , return only when showSearch is true
     return showSearch && visible ? (

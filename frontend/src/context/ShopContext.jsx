@@ -4,6 +4,8 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import axios from 'axios';
 
+import { tracker } from '../analytics/tracker';
+
 export const ShopContext = createContext();
 
 const ShopContextProvider = (props) => {
@@ -29,6 +31,17 @@ const ShopContextProvider = (props) => {
             toast.error("Select Product Size");
             return;
         }
+
+        // Find the product to grab its price for our analytics payload
+        const product = products.find((p) => p._id === itemId);
+        if (product) {
+            tracker.track('add_to_cart', {
+                product_id: itemId,
+                price: product.price,
+                size: size // Great extra metric to have!
+            });
+        }
+
         setCartItem(prevCart => {
             const newCart = structuredClone(prevCart);
             if (newCart[itemId]) {

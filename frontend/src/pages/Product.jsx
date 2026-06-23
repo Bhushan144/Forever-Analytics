@@ -4,6 +4,8 @@ import { ShopContext } from '../context/ShopContext';
 import { assets } from '../assets/assets';
 import RelatedProducts from '../components/RelatedProducts';
 
+import { tracker } from '../analytics/tracker';
+
 const Product = () => {
 
   let { productId } = useParams();
@@ -27,6 +29,17 @@ const Product = () => {
   useEffect(() => {
     fetchProductData();
   }, [productId, products])
+
+  useEffect(() => {
+    if (productData) {
+      tracker.track('product_view', {
+        product_id: productData._id,
+        product_name: productData.name,
+        price: productData.price,
+        category: productData.category
+      });
+    }
+  }, [productData]); // Fires exactly once when the product data finishes loading
 
   return productData ? (
     <>
