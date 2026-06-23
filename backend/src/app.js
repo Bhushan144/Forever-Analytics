@@ -5,6 +5,7 @@ import userRouter from './routes/userRouter.js';
 import productRouter from './routes/productRouter.js';
 
 import trackingRouter from './routes/trackingRouter.js';
+import analyticsRouter from './routes/analyticsRouter.js';
 
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -40,6 +41,7 @@ app.use("/api/user",userRouter);
 app.use("/api/product",productRouter);
 
 app.use('/api/tracking', trackingRouter);
+app.use('/api/analytics', analyticsRouter);
 
 // This part is new:
 const __filename = fileURLToPath(import.meta.url);
