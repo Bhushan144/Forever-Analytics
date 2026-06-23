@@ -15,6 +15,9 @@ import { Routes, Route } from "react-router-dom"
 export const backendURL = import.meta.env.VITE_BACKEND_URL;
 export const currency = '$';
 
+// Set globally ONCE at module load — ensures ALL axios requests include cookies
+axios.defaults.withCredentials = true;
+
 function App() {
   const [user, setUser] = useState(null);
   const [loading ,setLoading] = useState(true);
@@ -22,14 +25,10 @@ function App() {
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
-        // Ensure axios sends credentials with this request
-        axios.defaults.withCredentials = true;
-
-        // Ask the backend if the user's cookie is still valid
-        const response = await axios.get(`${backendURL}/api/user/verifyAdmin`); // Make sure you have this verify route
+        const response = await axios.get(`${backendURL}/api/user/verifyAdmin`);
 
         if (response.data.success) {
-          setUser(response.data.user); // Restore the user session
+          setUser(response.data.admin); // verifyAdmin returns 'admin', not 'user'
         }
       } catch (error) {
         console.log("User not authenticated on page load.");

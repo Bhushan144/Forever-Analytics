@@ -164,7 +164,14 @@ const adminLogin = async (req, res) => {
 
         const options = getCookieOptions();
 
-        return res.cookie("token", token, options).status(200).json({ success: true, message: "admin login successfull." })
+        const adminInfo = {
+            _id: admin._id,
+            name: admin.name,
+            email: admin.email,
+            role: admin.role
+        };
+
+        return res.cookie("token", token, options).status(200).json({ success: true, message: "admin login successfull.", admin: adminInfo })
 
     } catch (error) {
         res.status(500).json({ success: false, message: "error while admin login." })
