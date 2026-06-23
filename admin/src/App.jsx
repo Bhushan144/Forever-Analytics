@@ -8,6 +8,8 @@ import Login from "./pages/Login"
 import { ToastContainer } from 'react-toastify'
 import axios from 'axios';
 
+import Analytics from './pages/Analytics';
+
 import { Routes, Route } from "react-router-dom"
 
 export const backendURL = import.meta.env.VITE_BACKEND_URL;
@@ -61,6 +63,9 @@ function App() {
                 <Route path="/add" element={<Add />}></Route>
                 <Route path="/list" element={<List currency={currency}/>}></Route>
                 <Route path="/orders" element={<Orders />}></Route>
+
+                {/*Analytics Route */}
+                <Route path='/analytics' element={<Analytics token={token} />} />
               </Routes>
             </div>
           </div>
