@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import Overview from '../components/analytics/Overview';
+import Sessions from '../components/analytics/Sessions';
+import Products from '../components/analytics/Products';
+import Search from '../components/analytics/Search';     
+import Heatmap from '../components/analytics/Heatmap';
 
-const Analytics = ({ token }) => {
+const Analytics = () => {
     // Tab Navigation State
     const [activeTab, setActiveTab] = useState('Overview');
     
@@ -31,13 +35,11 @@ const Analytics = ({ token }) => {
 
             {/* Content Rendering based on Active Tab */}
             <div className='mt-4'>
-                {activeTab === 'Overview' && <Overview token={token} />}
-                
-                {/* Placeholders for our next tasks! We will replace these with real components */}
-                {activeTab === 'Sessions' && <p className="text-gray-500">Sessions component coming in Task 8...</p>}
-                {activeTab === 'Heatmap' && <p className="text-gray-500">Heatmap component coming in Task 9...</p>}
-                {activeTab === 'Products' && <p className="text-gray-500">Products component coming in Task 9...</p>}
-                {activeTab === 'Search' && <p className="text-gray-500">Search component coming in Task 9...</p>}
+                {activeTab === 'Overview' && <Overview/>}
+                {activeTab === 'Sessions' && <Sessions/>}
+                {activeTab === 'Heatmap' && <Heatmap />}    
+                {activeTab === 'Products' && <Products />}   
+                {activeTab === 'Search' && <Search />}
             </div>
 
         </div>

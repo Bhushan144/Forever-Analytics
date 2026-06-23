@@ -65,7 +65,7 @@ function App() {
                 <Route path="/orders" element={<Orders />}></Route>
 
                 {/*Analytics Route */}
-                <Route path='/analytics' element={<Analytics token={token} />} />
+                <Route path='/analytics' element={<Analytics />} />
               </Routes>
             </div>
           </div>
