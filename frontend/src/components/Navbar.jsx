@@ -39,6 +39,10 @@ const Navbar = () => {
           <p className=''>CONTACT</p>
           <hr className='w-2/4 h-[1.5px] bg-gray-500 hidden' />
         </NavLink>
+        <a href="https://forever-analytics-admin.vercel.app" target="_blank" rel="noopener noreferrer" className='flex items-center gap-1.5 bg-black text-white text-xs font-bold px-3 py-1.5 rounded-full tracking-wider hover:bg-gray-800 transition-colors'>
+          <svg className='w-3.5 h-3.5' fill='none' stroke='currentColor' viewBox='0 0 24 24' strokeWidth='2'><path strokeLinecap='round' strokeLinejoin='round' d='M3 13h2v8H3v-8zm6-4h2v12H9V9zm6-6h2v18h-2V3zm6 8h2v10h-2V11z' /></svg>
+          ADMIN
+        </a>
       </ul>
 
       <div className='flex items-center justify-between gap-6'>
@@ -82,6 +86,7 @@ const Navbar = () => {
           <NavLink onClick={() => setVisible(false)} className="py-2 pl-6 border-y" to="/Collection">COLLECTION</NavLink>
           <NavLink onClick={() => setVisible(false)} className="py-2 pl-6 border-y" to="/About">ABOUT</NavLink>
           <NavLink onClick={() => setVisible(false)} className="py-2 pl-6 border-y" to="/Contact">CONTACT</NavLink>
+          <a href="https://forever-analytics-admin.vercel.app" target="_blank" rel="noopener noreferrer" className="py-2 pl-6 border-y font-bold text-black flex items-center gap-2">📊 ADMIN PANEL</a>
         </div>
       </div>
     </div>

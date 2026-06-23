@@ -58,6 +58,13 @@ const Login = ({ setUser }) => {
                             <button className='rounded-xl text-lg tracking-wider bg-black text-white py-2'>login</button>
                         </div>
                     </form>
+
+                    {/* Reviewer credentials note */}
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-4">
+                        <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">🔑 Test Credentials</p>
+                        <p className="text-xs text-gray-600"><span className="font-semibold">Email:</span> levi@gmail.com</p>
+                        <p className="text-xs text-gray-600"><span className="font-semibold">Password:</span> leviSquad</p>
+                    </div>
                 </div>
             </div>
         </>
