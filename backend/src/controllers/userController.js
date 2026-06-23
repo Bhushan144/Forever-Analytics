@@ -7,11 +7,17 @@ const generateToken = (_id) => {
     return jwt.sign({ _id }, process.env.JWT_SECRET_KEY, { expiresIn: process.env.JWT_TOKEN_EXPIRY })
 }
 
+// Detect production: either NODE_ENV or non-localhost CORS origins
+const isProduction = process.env.NODE_ENV === 'production' || 
+    (process.env.CORS_ORIGIN && !process.env.CORS_ORIGIN.includes('localhost'));
+
+console.log('Cookie mode:', isProduction ? 'PRODUCTION (secure + sameSite=none)' : 'DEVELOPMENT (sameSite=lax)');
+
 // Shared cookie options for cross-origin deployment (Vercel ↔ Render)
 const getCookieOptions = () => ({
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
 });
 
