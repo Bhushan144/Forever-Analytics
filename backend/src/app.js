@@ -41,7 +41,14 @@ app.use(cors(corsOptions));
 app.use(express.static('public'))
 
 app.use(cookieParser())
- 
+
+app.get('/', (req, res) => {
+    res.status(200).json({
+        success: true,
+        message: "API is running successfully!"
+    });
+});
+
 //user Routes 
 app.use("/api/user",userRouter);
 
