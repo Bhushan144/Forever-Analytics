@@ -12,7 +12,7 @@ import Analytics from './pages/Analytics';
 
 import { Routes, Route } from "react-router-dom"
 
-export const backendURL = import.meta.env.VITE_BACKEND_URL;
+export const backendURL = import.meta.env.VITE_BACKEND_URL || '';
 export const currency = '$';
 
 // Set globally ONCE at module load — ensures ALL axios requests include cookies
