@@ -3,6 +3,7 @@ class CausalFunnelTracker {
         this.endpoint = endpoint;
         this.queue = [];
         this.isSending = false;
+        this.consecutiveFailures = 0; //Track consecutive network failures
         
         // 1. Initialize Identity
         this.visitorId = this.getOrCreateVisitorId();
@@ -107,6 +108,11 @@ class CausalFunnelTracker {
         
         this.queue.push(event);
 
+        //Prevent memory leaks. If queue hits 100, drop the oldest events.
+        if (this.queue.length > 100) {
+            this.queue.shift(); 
+        }
+
         // Force flush if queue gets too large to prevent data loss
         if (this.queue.length >= 10) {
             this.flush();
@@ -115,7 +121,7 @@ class CausalFunnelTracker {
 
     // --- Transport & Retry Module ---
     async flush(isUnload = false) {
-        if (this.queue.length === 0 || this.isSending) return;
+        if (this.queue.length === 0 || this.isSending || !navigator.onLine) return;
 
         const batch = [...this.queue];
         this.queue = []; 
@@ -133,9 +139,24 @@ class CausalFunnelTracker {
                     body: payload
                 });
                 if (!response.ok) throw new Error('Analytics batch rejected by server');
+
+                //If successful, reset the failure counter!
+                this.consecutiveFailures = 0;
+
             } catch (error) {
-                console.warn('Analytics batch failed, placing back in queue');
-                this.queue = [...batch, ...this.queue]; // Put back on failure
+                this.consecutiveFailures++; //Increment failure count
+
+                //Circuit Breaker Logic
+                if (this.consecutiveFailures >= 5) {
+                    console.warn('Analytics server unreachable. Dropping batch to save memory.');
+                    // We DO NOT put the batch back. We drop it. 
+                    // The interval keeps running, so future events will try again.
+                } else {
+                    console.warn(`Analytics batch failed (Attempt ${this.consecutiveFailures}), placing back in queue`);
+                    // Put back on failure, but ensure we don't exceed the 100 item cap
+                    this.queue = [...batch, ...this.queue].slice(0, 100); 
+                }
+                
             } finally {
                 this.isSending = false;
             }
